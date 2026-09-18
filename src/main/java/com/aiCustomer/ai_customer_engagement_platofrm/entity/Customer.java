@@ -10,7 +10,7 @@ import jakarta.persistence.GenerationType;
 @Table(name="customers")
 public class Customer {
    @Id  //This tells JPA This is the primary key
-   @GeneratedValue(strategy=GenerationType.IDENTITY) // DB generates auto increment ids when a new customer inserts into atable
+   @GeneratedValue(strategy=GenerationType.IDENTITY) // DB generates auto increment ids when a new customer inserts into a table
    private Long id;
 
    private String name;
