@@ -1,7 +1,11 @@
 package com.aiCustomer.ai_customer_engagement_platofrm.service;
 
 import com.aiCustomer.ai_customer_engagement_platofrm.entity.CustomerConversation;
+import com.aiCustomer.ai_customer_engagement_platofrm.exception.ConversationNotFoundException;
 import com.aiCustomer.ai_customer_engagement_platofrm.repository.CustomerConversationRepository;
+import com.aiCustomer.ai_customer_engagement_platofrm.dto.CustomerConversationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -40,13 +44,15 @@ public class CustomerConversationService {
         return savedConversation;
     }
 
-    public List<CustomerConversation> getAllConversations() {
-        return repository.findAll();
+    public Page<CustomerConversationResponse> getAllConversations(Pageable pageable) {
+        Page<CustomerConversation> conversations = repository.findAll(pageable);
+        return conversations.map(conversion -> new CustomerConversationResponse(conversion.getId(),conversion.getCustomerMessage(),conversion.getAiReply(), conversion.getCreatedAt()));
     }
 
-    public CustomerConversation getConversationById(Long id) {
+    public CustomerConversationResponse getConversationById(Long id) {
         logger.info("fetching get conversation by id {}", id);
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Conversation not found with ID: "+id));
+        CustomerConversation conversation= repository.findById(id).orElseThrow(() -> new ConversationNotFoundException("Conversation not found with ID: "+id));
+        return new CustomerConversationResponse(conversation.getId(), conversation.getCustomerMessage(), conversation.getAiReply(), conversation.getCreatedAt());
     }
 
 

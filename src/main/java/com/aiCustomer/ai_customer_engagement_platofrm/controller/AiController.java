@@ -1,9 +1,14 @@
 package com.aiCustomer.ai_customer_engagement_platofrm.controller;
 
+import com.aiCustomer.ai_customer_engagement_platofrm.dto.CustomerConversationResponse;
 import com.aiCustomer.ai_customer_engagement_platofrm.dto.CustomerMessageRequest;
 import com.aiCustomer.ai_customer_engagement_platofrm.dto.CustomerMessageResponse;
 import com.aiCustomer.ai_customer_engagement_platofrm.entity.CustomerConversation;
+import com.aiCustomer.ai_customer_engagement_platofrm.exception.InvalidPaginationException;
 import com.aiCustomer.ai_customer_engagement_platofrm.service.CustomerConversationService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,18 +43,25 @@ public class AiController {
     }
 
     @GetMapping("/conversations")
-    public List<CustomerConversation> getConversations() {
+    public Page<CustomerConversationResponse> getAllConversations(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
         logger.info("GET /api/ai/conversations was called");
+        if (page < 0) {
+            throw new InvalidPaginationException("Page Cannot be negative");
+        }
+        if (size < 1 || size > 50) {
+            throw new InvalidPaginationException("Size must be between 1 and 50");
+        }
+        Pageable pageable = PageRequest.of(page, size);
 
-        List<CustomerConversation> conversations = conversationService.getAllConversations();
-        logger.info("Found {} conversations",conversations.size());
+        Page<CustomerConversationResponse> conversations = conversationService.getAllConversations(pageable);
+        logger.info("Found {} conversations",conversations.getTotalElements());
         return conversations;
     }
 
     @GetMapping("/conversations/{id}")
-    public CustomerConversation getConversationById(@PathVariable Long id){
+    public CustomerConversationResponse getConversationById(@PathVariable Long id){
         logger.info("GET /api/ai/conversations was called {}",id);
-        CustomerConversation conversation = conversationService.getConversationById(id);
+        CustomerConversationResponse conversation = conversationService.getConversationById(id);
         logger.info("Conversation found with ID: {}",conversation.getId());
         return conversation;
     }
