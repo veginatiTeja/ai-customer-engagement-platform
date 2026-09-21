@@ -55,5 +55,10 @@ public class CustomerConversationService {
         return new CustomerConversationResponse(conversation.getId(), conversation.getCustomerMessage(), conversation.getAiReply(), conversation.getCreatedAt());
     }
 
+    public Page<CustomerConversationResponse> searchConversions(String keyword, Pageable pageable) {
+        logger.info("searching conversions with keyword {}", keyword);
+        Page<CustomerConversation> conversations = repository.findByCustomerMessageContainingIgnoreCase(keyword, pageable);
+        return conversations.map(conversation -> new CustomerConversationResponse(conversation.getId(), conversation.getCustomerMessage(), conversation.getAiReply(),conversation.getCreatedAt()));
+    }
 
 }
