@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -57,8 +58,25 @@ public class CustomerConversationService {
 
     public Page<CustomerConversationResponse> searchConversions(String keyword, Pageable pageable) {
         logger.info("searching conversions with keyword {}", keyword);
-        Page<CustomerConversation> conversations = repository.findByCustomerMessageContainingIgnoreCase(keyword, pageable);
+        Page<CustomerConversation> conversations = repository.searchByKeyword(keyword, pageable);
         return conversations.map(conversation -> new CustomerConversationResponse(conversation.getId(), conversation.getCustomerMessage(), conversation.getAiReply(),conversation.getCreatedAt()));
     }
 
+    public Page<CustomerConversationResponse> getConversationsByDateRange(
+            LocalDateTime fromDate,
+            LocalDateTime toDate,
+            Pageable pageable) {
+
+        Page<CustomerConversation> conversations =
+                repository.findByDateRange(fromDate, toDate, pageable);
+
+        return conversations.map(conversation ->
+                new CustomerConversationResponse(
+                        conversation.getId(),
+                        conversation.getCustomerMessage(),
+                        conversation.getAiReply(),
+                        conversation.getCreatedAt()
+                )
+        );
+    }
 }

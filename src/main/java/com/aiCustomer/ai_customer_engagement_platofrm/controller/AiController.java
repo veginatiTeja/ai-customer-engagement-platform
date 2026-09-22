@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -86,5 +87,42 @@ public class AiController {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, field));
         return conversationService.searchConversions(keyword, pageable);
+    }
+
+    @GetMapping("/conversations/filter")
+    public Page<CustomerConversationResponse> filterByDate(
+            @RequestParam LocalDateTime fromDate,
+            @RequestParam LocalDateTime toDate,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort) {
+
+        if (page < 0) {
+            throw new InvalidPaginationException("Page Cannot be negative");
+        }
+
+        if (size < 1 || size > 50) {
+            throw new InvalidPaginationException("Size must be between 1 and 50");
+        }
+
+        String[] sortDetails = sort.split(",");
+        String field = sortDetails[0];
+        String direction = sortDetails.length > 1 ? sortDetails[1] : "asc";
+
+        Sort.Direction sortDirection =
+                Sort.Direction.fromString(direction);
+
+        Pageable pageable =
+                PageRequest.of(
+                        page,
+                        size,
+                        Sort.by(sortDirection, field)
+                );
+
+        return conversationService.getConversationsByDateRange(
+                fromDate,
+                toDate,
+                pageable
+        );
     }
 }
